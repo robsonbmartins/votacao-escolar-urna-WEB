@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urna Eletrônica</title>
+    <style>
+        /* Reset e Fontes */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #eceff1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- TELA DE LOGIN (TÍTULO DE ELEITOR) --- */
+        #login-screen {
+            background-color: #e8f5e9;
+            border: 3px solid #2e7d32;
+            border-radius: 10px;
+            padding: 30px;
+            width: 450px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            background-image:
+                repeating-linear-gradient(45deg, rgba(46, 125, 50, 0.05) 25%, transparent 25%, transparent 75%, rgba(46, 125, 50, 0.05) 75%, rgba(46, 125, 50, 0.05)),
+                repeating-linear-gradient(45deg, rgba(46, 125, 50, 0.05) 25%, transparent 25%, transparent 75%, rgba(46, 125, 50, 0.05) 75%, rgba(46, 125, 50, 0.05));
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+        }
+
+        .titulo-header {
+            text-align: center;
+            color: #1b5e20;
+            border-bottom: 2px solid #2e7d32;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .titulo-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .titulo-header h3 {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .titulo-form {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border: 1px solid #81c784;
+            border-radius: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #a5d6a7;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #f1f8e9;
+            color: #333;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #2e7d32;
+        }
+
+        .form-group input:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+
+        .btn-entrar {
+            width: 100%;
+            padding: 12px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-entrar:hover {
+            background-color: #1b5e20;
+        }
+
+        .btn-entrar:disabled {
+            background-color: #9e9e9e;
+            cursor: not-allowed;
+        }
+
+        /* --- SPLASH DENTRO DA URNA --- */
+        #splash-urna {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8f9fa;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #splash-urna img {
+            width: 560px;
+            height: auto;
+            margin-bottom: 20px;
+            mix-blend-mode: multiply;
+            /* Evita caixas brancas ou pretas ao redor de JPEGs em fundos claros */
+            border-radius: 5px;
+            /* Suaviza arestas caso tenha borda delimitadora original */
+            clip-path: inset(12px);
+            /* Corta a borda preta */
+        }
+
+        #splash-urna h2 {
+            color: #333;
+            font-size: 26px;
+            letter-spacing: 2px;
+        }
+
+        /* --- TELA DA URNA ELETRÔNICA --- */
+        #urna-screen {
+            display: none;
+            background-color: #dbd5c9;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.4), inset 2px 2px 5px rgba(255, 255, 255, 0.5);
+            gap: 30px;
+            border: 2px solid #bcaaa4;
+        }
+
+        /* Display Panel */
+        .display-panel {
+            width: 580px;
+            height: 400px;
+            background-color: #f8f9fa;
+            border: 3px solid #9e9e9e;
+            border-radius: 5px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .display-top {
+            flex: 1;
+            display: flex;
+        }
+
+        .display-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .display-right {
+            width: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .title-voto {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .cargo {
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .numeros {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .numero-box {
+            width: 45px;
+            height: 60px;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .numero-box.pisca {
+            animation: pisca 0.8s infinite;
+        }
+
+        @keyframes pisca {
+
+            0%,
+            49% {
+                opacity: 1;
+            }
+
+            50%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .info-candidato {
+            font-size: 18px;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .foto-lider {
+            width: 100px;
+            height: 130px;
+            border: 2px solid #333;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .foto-vice {
+            width: 80px;
+            height: 105px;
+            border: 2px solid #333;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .foto-container {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .display-bottom {
+            border-top: 2px solid #333;
+            padding-top: 15px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .mensagem-grande {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .mensagem-fim {
+            font-size: 100px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 90px;
+            letter-spacing: 5px;
+            position: absolute;
+            left: 0;
+            width: 100%;
+        }
+
+        /* Keyboard Panel */
+        .keyboard-panel {
+            width: 320px;
+            background-color: #212121;
+            padding: 25px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.5), inset 2px 2px 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .keyboard-header {
+            background-color: #f5f5f5;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 22px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            color: #333;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .keys-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 0 15px;
+        }
+
+        .key-num {
+            background-color: #111;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            height: 55px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #000, inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+            transition: all 0.1s;
+        }
+
+        .key-num:active {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+
+        .key-0 {
+            grid-column: 2;
+        }
+
+        .action-keys {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+
+        .key-action {
+            border: none;
+            border-radius: 4px;
+            height: 50px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 3px 3px 0 #000;
+            flex: 1;
+            transition: all 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .key-action:active {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+
+        .key-branco {
+            background-color: #fff;
+            color: #000;
+        }
+
+        .key-corrige {
+            background-color: #ff9800;
+            color: #000;
+        }
+
+        .key-confirma {
+            background-color: #4caf50;
+            color: #000;
+            height: 65px;
+            align-self: flex-end;
+            font-size: 14px;
+        }
+
+        /* --- TELA DE RELATÓRIO --- */
+        #report-screen {
+            display: none;
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 600px;
+            border-top: 10px solid #2e7d32;
+        }
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px dashed #ccc;
+            padding-bottom: 20px;
+        }
+
+        .report-header h2 {
+            color: #2e7d32;
+            margin-bottom: 5px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .report-table th,
+        .report-table td {
+            border-bottom: 1px solid #eee;
+            padding: 15px 10px;
+            text-align: left;
+        }
+
+        .report-table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .report-table tr:last-child td {
+            border-bottom: 2px solid #ccc;
+        }
+
+        .winner {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            background-color: #2e7d32;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .winner-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .winner-photos {
+            display: flex;
+            gap: 10px;
+        }
+
+        .winner-foto-box {
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .winner-foto-box img {
+            width: 60px;
+            height: 80px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .tie {
+            background-color: #ff9800;
+            display: block;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .btn-report {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-report-admin {
+            background-color: #1565c0;
+            color: white;
+        }
+
+        .btn-report-admin:hover {
+            background-color: #0d47a1;
+        }
+
+        .btn-report-reset {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-report-reset:hover {
+            background-color: #d32f2f;
+        }
+
+        /* --- TELA DE ADMINISTRAÇÃO --- */
+        #admin-screen {
+            display: none;
+            flex-direction: column;
+            width: 800px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .admin-header {
+            background: #1565c0;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .btn-sair {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-sair:hover {
+            background: #c62828;
+        }
+
+        .admin-body {
+            display: flex;
+            min-height: 400px;
+        }
+
+        .admin-sidebar {
+            width: 200px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-btn {
+            padding: 15px;
+            text-align: left;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            transition: background 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .tab-btn.active {
+            background: #fff;
+            font-weight: bold;
+            border-right: 2px solid #1565c0;
+        }
+
+        .admin-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .admin-content h3 {
+            margin-bottom: 15px;
+            color: #1565c0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .admin-form {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+        }
+
+        .admin-form input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .admin-form button {
+            padding: 10px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .admin-form button:hover {
+            background: #1b5e20;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background: #f5f5f5;
+        }
+
+        .btn-excluir {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-excluir:hover {
+            background: #c62828;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .btn-danger {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen">
+        <div class="titulo-header">
+            <h2>Eleições Escolares - 2026</h2>
+            <h3>E.E.E.B Apeles Porto Alegre</h3>
+        </div>
+        <div class="titulo-form">
+            <div class="form-group">
+                <label for="usuario">Nome do Eleitor (Usuário)</label>
+                <input type="text" id="usuario" placeholder="Digite seu usuário" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" placeholder="Digite sua senha">
+            </div>
+            <button class="btn-entrar" id="btn-entrar" onclick="fazerLogin()">ENTRAR</button>
+        </div>
+    </div>
+
+    <!-- TELA DA URNA -->
+    <div id="urna-screen">
+        <div class="display-panel">
+            <!-- TELA DE SPLASH (DENTRO DA URNA) -->
+            <div id="splash-urna">
+                <img src="icones/brasao colorido da replublica.jpeg" alt="Brasão da República">
+                <h2>JUSTIÇA ELEITORAL</h2>
+            </div>
+
+            <div class="display-top">
+                <div class="display-left">
+                    <div class="title-voto" id="d-titulo">SEU VOTO PARA</div>
+                    <div class="cargo" id="d-cargo">LÍDER DA TURMA</div>
+                    <div class="numeros" id="d-numeros"></div>
+                    <div class="info-candidato" id="d-info"></div>
+                </div>
+                <div class="display-right" id="d-fotos"></div>
+            </div>
+            <div class="display-bottom" id="d-instrucoes">
+                Aperte a tecla:<br>
+                <b>VERDE</b> para CONFIRMAR<br>
+                <b>LARANJA</b> para CORRIGIR
+            </div>
+        </div>
+
+        <div class="keyboard-panel">
+            <div class="keyboard-header"
+                style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="icones/brasao colorido da replublica Preto e branco.jpeg" alt="Brasão"
+                    style="height: 80px; margin-top: -20px; margin-bottom: -20px; mix-blend-mode: multiply;">
+                JUSTIÇA ELEITORAL
+            </div>
+            <div class="keys-grid">
+                <button class="key-num" onclick="clicou('1')">1</button>
+                <button class="key-num" onclick="clicou('2')">2</button>
+                <button class="key-num" onclick="clicou('3')">3</button>
+                <button class="key-num" onclick="clicou('4')">4</button>
+                <button class="key-num" onclick="clicou('5')">5</button>
+                <button class="key-num" onclick="clicou('6')">6</button>
+                <button class="key-num" onclick="clicou('7')">7</button>
+                <button class="key-num" onclick="clicou('8')">8</button>
+                <button class="key-num" onclick="clicou('9')">9</button>
+                <button class="key-num key-0" onclick="clicou('0')">0</button>
+            </div>
+            <div class="action-keys">
+                <button class="key-action key-branco" onclick="branco()">BRANCO</button>
+                <button class="key-action key-corrige" onclick="corrige()">CORRIGE</button>
+                <button class="key-action key-confirma" onclick="confirma()">CONFIRMA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE RELATÓRIO -->
+    <div id="report-screen">
+        <div class="report-header">
+            <h2>BOLETIM DE URNA</h2>
+            <p>Resultado Final da Apuração</p>
+        </div>
+        <div id="carousel-container" style="overflow: hidden; width: 100%;">
+            <div id="carousel-slides" style="display: flex; transition: transform 0.3s ease;">
+                <!-- Slides injetados via JS -->
+            </div>
+            <div class="carousel-nav"
+                style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 0 20px;">
+                <button id="btn-prev-slide" onclick="mudarSlide(-1)" class="btn-report"
+                    style="background-color: #757575; color: white;">&laquo; Turma Anterior</button>
+                <span id="slide-indicator" style="font-weight: bold; font-size: 16px;"></span>
+                <button id="btn-next-slide" onclick="mudarSlide(1)" class="btn-report"
+                    style="background-color: #757575; color: white;">Próxima Turma &raquo;</button>
+            </div>
+        </div>
+        <div class="report-actions">
+            <button class="btn-report btn-report-admin" onclick="voltarAdmin()">Voltar ao Admin</button>
+            <button class="btn-report btn-report-reset" onclick="novaVotacao()">Nova Votação (Zerar Votos)</button>
+        </div>
+    </div>
+
+    <!-- TELA DE ADMINISTRAÇÃO -->
+    <div id="admin-screen">
+        <div class="admin-header">
+            <h2>Painel de Administração - TSE</h2>
+            <button onclick="sairAdmin()" class="btn-sair">Sair</button>
+        </div>
+        <div class="admin-body">
+            <div class="admin-sidebar">
+                <button class="tab-btn active" onclick="showTab(event, 'tab-eleitores')">Eleitores</button>
+                <button class="tab-btn" onclick="showTab(event, 'tab-chapas')">Chapas</button>
+                <button class="tab-btn" onclick="showTab(event, 'tab-perigo')">Zona de Perigo</button>
+                <button id="btn-tab-relatorio" class="tab-btn"
+                    style="color: #1565c0; font-weight: bold; margin-top: auto; border-top: 2px solid #ddd; display: none;"
+                    onclick="mostrarRelatorio()">Boletim de Urna</button>
+            </div>
+            <div class="admin-content">
+                <!-- Tab Eleitores -->
+                <div id="tab-eleitores" class="tab-content">
+                    <h3>Cadastrar Eleitor</h3>
+                    <form class="admin-form" id="form-eleitor" onsubmit="addEleitor(event)">
+                        <input type="text" id="novo-usuario" placeholder="Usuário" required>
+                        <input type="text" id="nova-turma-eleitor" placeholder="Turma (ex: 101, 201)" required>
+                        <input type="password" id="nova-senha" placeholder="Senha" required>
+                        <button type="submit">Cadastrar Eleitor</button>
+                    </form>
+                    <h3>Lista de Eleitores</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Turma</th>
+                                <th>Votou?</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-eleitores"></tbody>
+                    </table>
+                </div>
+                <!-- Tab Chapas -->
+                <div id="tab-chapas" class="tab-content" style="display: none;">
+                    <h3>Cadastrar Chapa</h3>
+                    <form class="admin-form" id="form-chapa" onsubmit="addChapa(event)">
+                        <input type="number" id="novo-numero" placeholder="Número (2 dígitos)" required min="10"
+                            max="99">
+                        <input type="text" id="nova-turma-chapa" placeholder="Turma (ex: 101, 201)" required>
+                        <input type="text" id="novo-lider" placeholder="Nome do Líder" required>
+                        <input type="text" id="novo-vice" placeholder="Nome do Vice" required>
+                        <div style="font-size: 14px; margin-bottom: -5px; color: #555;">Foto Líder (Opcional, ou usa
+                            person.jpg):</div>
+                        <input type="file" id="nova-foto-lider" accept="image/*">
+                        <div style="font-size: 14px; margin-bottom: -5px; color: #555;">Foto Vice (Opcional, ou usa
+                            person.jpg):</div>
+                        <input type="file" id="nova-foto-vice" accept="image/*">
+                        <button type="submit">Cadastrar Chapa</button>
+                    </form>
+                    <h3>Lista de Chapas</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Turma</th>
+                                <th>Líder</th>
+                                <th>Vice</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-chapas"></tbody>
+                    </table>
+                </div>
+                <!-- Tab Perigo -->
+                <div id="tab-perigo" class="tab-content" style="display: none;">
+                    <h3>Controle de Eleição</h3>
+                    <div style="margin-bottom: 20px;">
+                        <button onclick="zerarVotos()" class="btn-warning">Zerar Apenas os Votos</button>
+                        <p style="font-size: 14px; color: #666; margin-top: 5px;">Mantém eleitores e chapas cadastrados,
+                            mas permite uma nova rodada de votação.</p>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+                    <div>
+                        <button onclick="resetTotal()" class="btn-danger">Reset Total (Apagar Tudo)</button>
+                        <p style="font-size: 14px; color: #666; margin-top: 5px;">Apaga todos os eleitores, chapas e
+                            votos. Retorna ao estado inicial vazio.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. ESTRUTURA DE DADOS (localStorage)
+        // ==========================================
+        // Inicializa vazio se não existir
+        if (!localStorage.getItem('eleitores')) {
+            localStorage.setItem('eleitores', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('chapas')) {
+            localStorage.setItem('chapas', JSON.stringify([]));
+        }
+
+        let eleitores = [];
+        let chapas = [];
+        let usuarioLogado = null;
+
+        let numeroDigitado = '';
+        let votoBranco = false;
+
+        // Áudios
+        const audioClick = new Audio('audio/Urna Eletrônica-Clik.mp3');
+        const audioConfirma = new Audio('audio/confirma-urna.mp3');
+
+        // Elementos do DOM
+        const loginScreen = document.getElementById('login-screen');
+        const splashUrna = document.getElementById('splash-urna');
+        const urnaScreen = document.getElementById('urna-screen');
+        const reportScreen = document.getElementById('report-screen');
+        const adminScreen = document.getElementById('admin-screen');
+
+        const dNumeros = document.getElementById('d-numeros');
+        const dInfo = document.getElementById('d-info');
+        const dFotos = document.getElementById('d-fotos');
+        const dInstrucoes = document.getElementById('d-instrucoes');
+        const dTitulo = document.getElementById('d-titulo');
+        const dCargo = document.getElementById('d-cargo');
+
+        // ==========================================
+        // INICIALIZAÇÃO E REGRA DE ENCERRAMENTO
+        // ==========================================
+        function init() {
+            eleitores = JSON.parse(localStorage.getItem('eleitores')) || [];
+            chapas = JSON.parse(localStorage.getItem('chapas')) || [];
+
+            // Regra: Pelo menos 1 eleitor E todos votaram
+            const todosVotaram = eleitores.length > 0 && eleitores.every(e => e.voto_no_numero !== null);
+
+            loginScreen.style.display = 'block';
+            if (splashUrna) splashUrna.style.display = 'none';
+            urnaScreen.style.display = 'none';
+            reportScreen.style.display = 'none';
+            adminScreen.style.display = 'none';
+            document.getElementById('usuario').value = '';
+            document.getElementById('senha').value = '';
+
+            if (todosVotaram) {
+                // Apenas exibe alerta visual, mas permite login para o admin
+                const tituloForm = document.querySelector('.titulo-form');
+                if (!document.getElementById('aviso-fim-votacao')) {
+                    const aviso = document.createElement('div');
+                    aviso.id = 'aviso-fim-votacao';
+                    aviso.style.color = '#d32f2f';
+                    aviso.style.fontWeight = 'bold';
+                    aviso.style.marginBottom = '15px';
+                    aviso.style.textAlign = 'center';
+                    aviso.innerText = 'Votação encerrada! Todos os eleitores já votaram.';
+                    tituloForm.insertBefore(aviso, tituloForm.firstChild);
+                }
+            } else {
+                const avisoExistente = document.getElementById('aviso-fim-votacao');
+                if (avisoExistente) avisoExistente.remove();
+            }
+        }
+
+        // ==========================================
+        // 2. TELA DE AUTENTICAÇÃO (LOGIN)
+        // ==========================================
+        function fazerLogin() {
+            const user = document.getElementById('usuario').value.trim();
+            const pass = document.getElementById('senha').value.trim();
+
+            if (!user || !pass) {
+                alert('Por favor, preencha usuário e senha.');
+                return;
+            }
+
+            // Acesso Admin
+            if (user === 'admin' && pass === 'admin') {
+                abrirAdmin();
+                return;
+            }
+
+            const eleitor = eleitores.find(e => e.usuario === user && e.senha === pass);
+
+            if (eleitor) {
+                if (eleitor.voto_no_numero !== null) {
+                    alert('Atenção: Este eleitor já registrou seu voto!');
+                } else {
+                    usuarioLogado = eleitor;
+                    loginScreen.style.display = 'none';
+                    urnaScreen.style.display = 'flex';
+                    splashUrna.style.display = 'flex';
+
+                    setTimeout(() => {
+                        splashUrna.style.display = 'none';
+                        iniciarUrna();
+                    }, 2000);
+                }
+            } else {
+                alert('Credenciais inválidas. Tente novamente.');
+            }
+        }
+
+        // ==========================================
+        // 3. TELA DA URNA ELETRÔNICA
+        // ==========================================
+        function iniciarUrna() {
+            splashUrna.style.display = 'none'; // Garantia secundária
+            numeroDigitado = '';
+            votoBranco = false;
+            atualizarDisplay();
+        }
+
+        function atualizarDisplay() {
+            dFotos.innerHTML = '';
+            dInfo.innerHTML = '';
+            dInstrucoes.style.display = 'none';
+            dTitulo.style.display = 'block';
+            dCargo.style.display = 'block';
+
+            if (votoBranco) {
+                dNumeros.innerHTML = '';
+                dInfo.innerHTML = '<div class="mensagem-grande" style="margin-top: 30px; font-size: 38px;">VOTO EM BRANCO</div>';
+                dInstrucoes.style.display = 'block';
+                return;
+            }
+
+            let numHtml = '';
+            for (let i = 0; i < 2; i++) {
+                if (i < numeroDigitado.length) {
+                    numHtml += `<div class="numero-box">${numeroDigitado[i]}</div>`;
+                } else if (i === numeroDigitado.length) {
+                    numHtml += `<div class="numero-box pisca"></div>`;
+                } else {
+                    numHtml += `<div class="numero-box"></div>`;
+                }
+            }
+            dNumeros.innerHTML = numHtml;
+
+            if (numeroDigitado.length === 2) {
+                const chapa = chapas.find(c => c.numero === numeroDigitado);
+                if (chapa && chapa.turma === usuarioLogado.turma) {
+                    dInfo.innerHTML = `Nome: <b>${chapa.lider_da_turma}</b><br><br>Vice: <b>${chapa.vice_lider}</b>`;
+                    dFotos.innerHTML = `
+                        <div class="foto-container"><img src="${chapa.url_foto_lider}" class="foto-lider" alt="Líder"><br>Líder</div>
+                        <div class="foto-container"><img src="${chapa.url_foto_vice}" class="foto-vice" alt="Vice"><br>Vice</div>
+                    `;
+                } else {
+                    dInfo.innerHTML = '<div class="mensagem-grande" style="margin-top: 30px; font-size: 38px;">VOTO NULO</div>';
+                }
+                dInstrucoes.style.display = 'block';
+            }
+        }
+
+        function clicou(n) {
+            audioClick.currentTime = 0;
+            audioClick.play();
+            if (votoBranco) return;
+            if (numeroDigitado.length < 2) {
+                numeroDigitado += n;
+                atualizarDisplay();
+            }
+        }
+
+        function branco() {
+            audioClick.currentTime = 0;
+            audioClick.play();
+            if (numeroDigitado === '') {
+                votoBranco = true;
+                atualizarDisplay();
+            }
+        }
+
+        function corrige() {
+            audioClick.currentTime = 0;
+            audioClick.play();
+            numeroDigitado = '';
+            votoBranco = false;
+            atualizarDisplay();
+        }
+
+        function confirma() {
+            let voto = null;
+            if (votoBranco) {
+                voto = 'BRANCO';
+            } else if (numeroDigitado.length === 2) {
+                const chapa = chapas.find(c => c.numero === numeroDigitado);
+                voto = (chapa && chapa.turma === usuarioLogado.turma) ? numeroDigitado : 'NULO';
+            } else {
+                return;
+            }
+
+            const index = eleitores.findIndex(e => e.usuario === usuarioLogado.usuario);
+            eleitores[index].voto_no_numero = voto;
+            localStorage.setItem('eleitores', JSON.stringify(eleitores));
+
+            dTitulo.style.display = 'none';
+            dCargo.style.display = 'none';
+            dNumeros.innerHTML = '';
+            dInfo.innerHTML = '<div class="mensagem-fim">FIM</div>';
+            dFotos.innerHTML = '';
+            dInstrucoes.style.display = 'none';
+
+            audioConfirma.currentTime = 0;
+            audioConfirma.play();
+
+            setTimeout(() => { init(); }, 2000);
+        }
+
+        // ==========================================
+        // 4. RELATÓRIO FINAL DE APURAÇÃO
+        // ==========================================
+        let currentSlide = 0;
+        let totalSlides = 0;
+
+        function mudarSlide(dir) {
+            currentSlide += dir;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+
+            document.getElementById('carousel-slides').style.transform = `translateX(-${currentSlide * 100}%)`;
+
+            document.getElementById('btn-prev-slide').disabled = (currentSlide === 0);
+            document.getElementById('btn-next-slide').disabled = (currentSlide === totalSlides - 1);
+            document.getElementById('btn-prev-slide').style.opacity = (currentSlide === 0) ? '0.5' : '1';
+            document.getElementById('btn-next-slide').style.opacity = (currentSlide === totalSlides - 1) ? '0.5' : '1';
+
+            // Extract Turma name to show in indicator if possible
+            const turmasSet = new Set();
+            eleitores.forEach(e => { if (e.turma) turmasSet.add(e.turma); });
+            chapas.forEach(c => { if (c.turma) turmasSet.add(c.turma); });
+            const turmas = Array.from(turmasSet).sort();
+
+            if (turmas.length > 0) {
+                document.getElementById('slide-indicator').innerText = `Turma: ${turmas[currentSlide]}`;
+            }
+        }
+
+        function mostrarRelatorio() {
+            loginScreen.style.display = 'none';
+            urnaScreen.style.display = 'none';
+            reportScreen.style.display = 'block';
+
+            const turmasSet = new Set();
+            eleitores.forEach(e => { if (e.turma) turmasSet.add(e.turma); });
+            chapas.forEach(c => { if (c.turma) turmasSet.add(c.turma); });
+            const turmas = Array.from(turmasSet).sort();
+
+            if (turmas.length === 0) {
+                document.getElementById('carousel-slides').innerHTML = '<div style="width: 100%; text-align: center; padding: 20px;">Nenhum dado de turma encontrado.</div>';
+                document.getElementById('slide-indicator').innerText = '';
+                document.querySelector('.carousel-nav').style.display = 'none';
+                return;
+            }
+
+            totalSlides = turmas.length;
+            currentSlide = 0;
+            let slidesHtml = '';
+
+            turmas.forEach(turma => {
+                const chapasTurma = chapas.filter(c => c.turma === turma);
+                const eleitoresTurma = eleitores.filter(e => e.turma === turma);
+
+                const contagem = {};
+                let totalVotos = 0;
+
+                chapasTurma.forEach(c => contagem[c.numero] = 0);
+                contagem['BRANCO'] = 0;
+                contagem['NULO'] = 0;
+
+                eleitoresTurma.forEach(e => {
+                    if (e.voto_no_numero) {
+                        if (contagem[e.voto_no_numero] !== undefined) {
+                            contagem[e.voto_no_numero]++;
+                        } else if (e.voto_no_numero === 'BRANCO') {
+                            contagem['BRANCO']++;
+                        } else {
+                            contagem['NULO']++;
+                        }
+                        totalVotos++;
+                    }
+                });
+
+                let tbodyHtml = '';
+                let maxVotos = -1;
+                let chapaVencedora = null;
+                let vencedor = null;
+                let empate = false;
+
+                chapasTurma.forEach(c => {
+                    const votos = contagem[c.numero] || 0;
+                    tbodyHtml += `<tr><td><b>Chapa ${c.numero}</b> - ${c.lider_da_turma}</td><td style="text-align: center; font-weight: bold;">${votos}</td></tr>`;
+
+                    if (votos > maxVotos) {
+                        maxVotos = votos;
+                        vencedor = `Chapa ${c.numero} <br><span style="font-size: 16px; font-weight: normal;">Líder: ${c.lider_da_turma} | Vice: ${c.vice_lider}</span>`;
+                        chapaVencedora = c;
+                        empate = false;
+                    } else if (votos === maxVotos && votos > 0) {
+                        empate = true;
+                    }
+                });
+
+                tbodyHtml += `
+                    <tr><td>Votos em Branco</td><td style="text-align: center;">${contagem['BRANCO']}</td></tr>
+                    <tr><td>Votos Nulos</td><td style="text-align: center;">${contagem['NULO']}</td></tr>
+                    <tr style="background-color: #f0f0f0; font-weight: bold;"><td>TOTAL DE VOTOS</td><td style="text-align: center;">${totalVotos}</td></tr>
+                `;
+
+                let winnerHtml = '';
+                if (maxVotos <= 0) {
+                    winnerHtml = `<div class="winner tie">Nenhum voto válido registrado.</div>`;
+                } else if (empate) {
+                    winnerHtml = `<div class="winner tie">Resultado: EMPATE!</div>`;
+                } else {
+                    winnerHtml = `
+                        <div class="winner">
+                            <div class="winner-text">VENCEDOR:<br>${vencedor}</div>
+                            <div class="winner-photos">
+                                <div class="winner-foto-box">
+                                    <img src="${chapaVencedora.url_foto_lider}" alt="Líder"><br>Líder
+                                </div>
+                                <div class="winner-foto-box">
+                                    <img src="${chapaVencedora.url_foto_vice}" alt="Vice"><br>Vice
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                slidesHtml += `
+                    <div style="min-width: 100%; box-sizing: border-box; padding: 0;">
+                        <h3 style="text-align: center; color: #2e7d32; margin-bottom: 15px; background: #e8f5e9; padding: 10px; border-radius: 5px; border: 1px solid #c8e6c9;">Turma ${turma}</h3>
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Chapa / Voto</th>
+                                    <th style="text-align: center;">Quantidade</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tbodyHtml}</tbody>
+                        </table>
+                        ${winnerHtml}
+                    </div>
+                `;
+            });
+
+            document.getElementById('carousel-slides').innerHTML = slidesHtml;
+            document.getElementById('carousel-slides').style.transform = `translateX(0%)`;
+
+            const nav = document.querySelector('.carousel-nav');
+            if (totalSlides > 1) {
+                nav.style.display = 'flex';
+                mudarSlide(0);
+            } else {
+                nav.style.display = 'none';
+            }
+        }
+
+        function voltarAdmin() {
+            reportScreen.style.display = 'none';
+            abrirAdmin();
+        }
+
+        function novaVotacao() {
+            if (confirm('Tem certeza que deseja zerar os votos e iniciar uma nova votação?')) {
+                eleitores.forEach(e => e.voto_no_numero = null);
+                localStorage.setItem('eleitores', JSON.stringify(eleitores));
+                alert('Votos zerados. A urna está pronta para nova votação!');
+                init();
+            }
+        }
+
+        // ==========================================
+        // 5. PAINEL DE ADMINISTRAÇÃO
+        // ==========================================
+        function abrirAdmin() {
+            loginScreen.style.display = 'none';
+            adminScreen.style.display = 'flex';
+            renderAdminTables();
+        }
+
+        function sairAdmin() {
+            init();
+        }
+
+        function showTab(event, tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        function renderAdminTables() {
+            // Atualizar visibilidade do botão Boletim de Urna
+            const todosVotaram = eleitores.length > 0 && eleitores.every(e => e.voto_no_numero !== null);
+            document.getElementById('btn-tab-relatorio').style.display = todosVotaram ? 'block' : 'none';
+
+            const tbodyE = document.getElementById('lista-eleitores');
+            tbodyE.innerHTML = '';
+            eleitores.forEach((e, index) => {
+                tbodyE.innerHTML += `<tr>
+                    <td>${e.usuario}</td>
+                    <td>${e.turma || '-'}</td>
+                    <td>${e.voto_no_numero ? 'Sim (' + e.voto_no_numero + ')' : 'Não'}</td>
+                    <td>
+                        <button class="btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px; margin-bottom: 0;" onclick="anularEleitor(${index})">Anular Voto</button>
+                        <button class="btn-excluir" onclick="excluirEleitor(${index})">Excluir</button>
+                    </td>
+                </tr>`;
+            });
+
+            const tbodyC = document.getElementById('lista-chapas');
+            tbodyC.innerHTML = '';
+            chapas.forEach((c, index) => {
+                tbodyC.innerHTML += `<tr>
+                    <td>${c.numero}</td>
+                    <td>${c.turma || '-'}</td>
+                    <td>${c.lider_da_turma}</td>
+                    <td>${c.vice_lider}</td>
+                    <td><button class="btn-excluir" onclick="excluirChapa(${index})">Excluir</button></td>
+                </tr>`;
+            });
+        }
+
+        function addEleitor(e) {
+            e.preventDefault();
+            const u = document.getElementById('novo-usuario').value.trim();
+            const t = document.getElementById('nova-turma-eleitor').value.trim();
+            const s = document.getElementById('nova-senha').value.trim();
+            if (eleitores.find(el => el.usuario === u)) {
+                alert('Usuário já existe!');
+                return;
+            }
+            eleitores.push({ usuario: u, turma: t, senha: s, voto_no_numero: null });
+            localStorage.setItem('eleitores', JSON.stringify(eleitores));
+            document.getElementById('form-eleitor').reset();
+            renderAdminTables();
+        }
+
+        function excluirEleitor(index) {
+            if (confirm('Tem certeza que deseja excluir este eleitor?')) {
+                eleitores.splice(index, 1);
+                localStorage.setItem('eleitores', JSON.stringify(eleitores));
+                renderAdminTables();
+            }
+        }
+
+        function anularEleitor(index) {
+            if (confirm('Tem certeza que deseja anular o voto deste eleitor? O voto será computado como NULO.')) {
+                eleitores[index].voto_no_numero = 'NULO';
+                localStorage.setItem('eleitores', JSON.stringify(eleitores));
+                renderAdminTables();
+            }
+        }
+
+        function lerImagem(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) {
+                    resolve('icones/person.jpg');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => resolve('icones/person.jpg');
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function addChapa(e) {
+            e.preventDefault();
+            const n = document.getElementById('novo-numero').value.trim();
+            const t = document.getElementById('nova-turma-chapa').value.trim();
+            const l = document.getElementById('novo-lider').value.trim();
+            const v = document.getElementById('novo-vice').value.trim();
+            const flSelect = document.getElementById('nova-foto-lider').files[0];
+            const fvSelect = document.getElementById('nova-foto-vice').files[0];
+
+            if (chapas.find(c => c.numero === n)) {
+                alert('Número de chapa já existe!');
+                return;
+            }
+
+            const fl = await lerImagem(flSelect);
+            const fv = await lerImagem(fvSelect);
+
+            chapas.push({ numero: n, turma: t, lider_da_turma: l, vice_lider: v, url_foto_lider: fl, url_foto_vice: fv });
+            localStorage.setItem('chapas', JSON.stringify(chapas));
+            document.getElementById('form-chapa').reset();
+            renderAdminTables();
+        }
+
+        function excluirChapa(index) {
+            if (confirm('Tem certeza que deseja excluir esta chapa?')) {
+                chapas.splice(index, 1);
+                localStorage.setItem('chapas', JSON.stringify(chapas));
+                renderAdminTables();
+            }
+        }
+
+        function zerarVotos() {
+            if (confirm('Tem certeza que deseja zerar apenas os votos? Eleitores e chapas serão mantidos.')) {
+                eleitores.forEach(e => e.voto_no_numero = null);
+                localStorage.setItem('eleitores', JSON.stringify(eleitores));
+                renderAdminTables();
+                alert('Votos zerados com sucesso!');
+            }
+        }
+
+        function resetTotal() {
+            if (confirm('ATENÇÃO: Isso apagará TODOS os eleitores e chapas. Deseja continuar?')) {
+                eleitores = [];
+                chapas = [];
+                localStorage.setItem('eleitores', JSON.stringify(eleitores));
+                localStorage.setItem('chapas', JSON.stringify(chapas));
+                renderAdminTables();
+                alert('Sistema resetado completamente!');
+            }
+        }
+
+        // Login com Enter
+        document.getElementById('senha').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const btn = document.getElementById('btn-entrar');
+                if (!btn.disabled) fazerLogin();
+            }
+        });
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

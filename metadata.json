@@ -1,0 +1,5 @@
+{
+  "name": "Urna Eletrônica Brasileira",
+  "description": "Simulador de Urna Eletrônica Brasileira em um único arquivo HTML com persistência em localStorage.",
+  "requestFramePermissions": []
+}
